@@ -10,7 +10,7 @@ Stripe integration for laravel 10+ on PHP 8.1+
 ## Installation
 
 ```shell
-composer require Dominservice/laravel-stripe
+composer require dominservice/laravel-stripe
 ```
 
 Add your stripe credentials in `.env`:
