@@ -55,6 +55,6 @@ Route::group(['middleware' => ['stripe.verify'], 'namespace' => '\App\Http\Contr
 ```
 
 ## Code
- __To be continued__ ;) 
+ __To be continued...__ ;) 
 
 This repo in not finished
