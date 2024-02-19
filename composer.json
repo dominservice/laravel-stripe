@@ -1,0 +1,48 @@
+{
+  "name": "dominservice/laravel-stripe",
+  "description": "Laravel integration for Stripe.",
+  "type": "library",
+  "keywords": ["laravel", "stripe"],
+  "homepage": "https://github.com/dominservice/laravel-stripe",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "DSO-IT Mateusz Domin",
+      "email": "biuro@dso.biz.pl"
+    }
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "require": {
+    "php": "^8.1",
+    "ext-json": "*",
+    "dominservice/data_locale_parser": "^1.0",
+    "illuminate/console": "^10.0",
+    "illuminate/contracts": "^10.0",
+    "illuminate/database": "^10.0",
+    "illuminate/http": "^10.0",
+    "illuminate/queue": "^10.0",
+    "illuminate/routing": "^10.0",
+    "illuminate/support": "^10.0",
+    "psr/log": "^3.0",
+    "stripe/stripe-php": "^13.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "Dominservice\\LaraStripe\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Dominservice\\LaraStripe\\ServiceProvider"
+      ],
+      "aliases": {
+        "LaraStripe": "LaraStripe"
+      }
+    }
+  },
+  "config": {
+    "sort-packages": true
+  }
+}
