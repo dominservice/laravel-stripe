@@ -39,13 +39,20 @@ php artisan vendor:publish --tag=stripe-migrations
 In the configuration file you can change the list of allowed currencies. 
 Check if your currency is on this list, and if it is not there, add it, otherwise you will not be able to use this package.
 
-Also check if your User model is the same as the model specified in the __config/stripe.php__ file
+Also check if your User model is the same as the model specified in the `config/stripe.php` file
 
 # Usage
 
 ## Routing
 
-You must attach middleware '__stripe.verify__' to routes that have a reference to payments so that the paths are secured.
+You must attach middleware `stripe.verify` to routes that have a reference to __payments webhook__ so that the paths are secured.
+
+```php
+Route::group(['middleware' => ['stripe.verify'], 'namespace' => '\App\Http\Controllers'], function () {
+    Route::get('/webhook/payments', 'WebhookController@payments');
+    
+    (...)
+```
 
 ## Code
 
