@@ -48,6 +48,8 @@ class Subscriptions extends Repositories
         'trial_period_days',
         'trial_settings',
     ];
+    
+    protected $checkoutSessionId;
 
     public function __construct(
         protected null|SubscriptionService $subscriptions,
@@ -103,9 +105,9 @@ class Subscriptions extends Repositories
     public function create($customerId): \Stripe\Subscription
     {
         $prices = [];
-        
+
         if (empty($this->params['customer'])) {
-            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'name' parameter is required, you must provide this parameter to properly create the subscription.");
+            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'customer' parameter is required, you must provide this parameter to properly create the subscription.");
         }
 
         if (empty($this->params['items'])) {
@@ -226,7 +228,7 @@ class Subscriptions extends Repositories
             ) {
                 throw new ParameterBadValueException("The 'automatic_tax' parameter has an invalid value. Param automatic_tax.enabled is required.");
             }
-            
+
             $this->setParam($param, $val);
         }
     }
@@ -234,17 +236,25 @@ class Subscriptions extends Repositories
     /**
      * @param $subscriptionId
      * @param bool $emptyModel
-     * @return StripeSubscriptionModel|bool
+     * @return StripeSubscriptionModel|null
      */
-    protected function getSubscriptionModel($subscriptionId, bool $emptyModel = false): StripeSubscriptionModel|bool
+    protected function getSubscriptionModel($subscriptionId, bool $emptyModel = false): StripeSubscriptionModel|null
     {
-        if (is_a($subscriptionId, 'Subscription')) {
+
+        if (is_a($subscriptionId, \Stripe\Subscription::class)) {
             $subscriptionId = $subscriptionId->id;
         }
 
-        if (!$this->model = StripeSubscriptionModel::where('subscription_id', $subscriptionId)->first() && $emptyModel) {
+        $this->model = StripeSubscriptionModel::where('stripe_subscription_id', $subscriptionId)->first();
+        
+        if (!$this->model && $emptyModel) {
             $this->model = new StripeSubscriptionModel();
             $this->model->stripe_subscription_id = $subscriptionId;
+            
+            if (!empty($this->checkoutSessionId)) {
+                $this->model->stripe_checkout_session_id = $this->checkoutSessionId;
+            }
+            
             $this->model->save();
         }
 
@@ -257,7 +267,7 @@ class Subscriptions extends Repositories
      * @param string $priceId
      * @return StripeSubscriptionModel|bool
      */
-    protected function createSubscriptionModel($user, \Stripe\Subscription $object, string|array $prices): StripeSubscriptionModel|bool
+    public function createSubscriptionModel($user, \Stripe\Subscription $object, string|array $prices): StripeSubscriptionModel|bool
     {
         $this->getSubscriptionModel($object, true);
 
@@ -270,4 +280,12 @@ class Subscriptions extends Repositories
 
         return $this->model;
     }
+    
+    public function setCheckoutSessionId($id)
+    {
+        $this->checkoutSessionId = $id;
+        
+        return $this;
+    } 
+    
 }

@@ -35,6 +35,10 @@ class Customers extends Repositories
         'test_clock'
     ];
 
+    protected $modelClass = StripeCustomerModel::class;
+
+    protected $modelObjectKey = 'stripe_customer_id';
+
     public function __construct(
         protected null|CustomerService $customers,
         protected readonly null|string $stripeAccount = null
@@ -68,16 +72,20 @@ class Customers extends Repositories
 
     /**
      * @param $customerId
-     * @return \Stripe\Customer
+     * @return null|\Stripe\Customer
      * @throws ApiErrorException
      */
-    public function retrieve($customerId): \Stripe\Customer
+    public function retrieve($customerId)
     {
         $this->getCustomerIdByUser($customerId);
-        $data = $this->customers->retrieve($customerId, $this->getParams(), $this->getOpts());
+
+        if ($customerId !== $this->_empty) {
+            $this->object = $this->customers->retrieve($customerId, $this->getParams(), $this->getOpts());
+        }
+        
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
@@ -92,7 +100,7 @@ class Customers extends Repositories
             $email = config('stripe.email_key');
             $this->params['email'] = $user->$email;
         }
-        if (empty($this->params['email'])) {
+        if (empty($this->params['name'])) {
             $name = config('stripe.name_key');
             $this->params['name'] = $user->$name;
         }
@@ -101,10 +109,10 @@ class Customers extends Repositories
             $this->params['source'] = $token;
         }
 
-        $customerObject = $this->customers->create($this->getParams(), $this->getOpts());
-        $this->createCustomerModel($user, $customerObject);
+        $this->object = $this->customers->create($this->getParams(), $this->getOpts());
+        $this->createCustomerModel($user, $this->object);
         $this->clearObjectParams();
-        return $customerObject;
+        return $this->object;
     }
 
     /**
@@ -116,10 +124,10 @@ class Customers extends Repositories
     public function update($customerId, $params): \Stripe\Customer
     {
         $this->getCustomerIdByUser($customerId);
-        $data = $this->customers->update($customerId, $this->getParams($params), $this->getOpts());
+        $this->object = $this->customers->update($customerId, $this->getParams($params), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
@@ -130,10 +138,10 @@ class Customers extends Repositories
     public function delete($customerId): \Stripe\Customer
     {
         $this->getCustomerIdByUser($customerId);
-        $data = $this->customers->delete($customerId, $this->getParams(), $this->getOpts());
+        $this->object = $this->customers->delete($customerId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**

@@ -18,9 +18,19 @@ class Repositories
 
     protected array $expand = [];
 
-    protected $model;
+    protected mixed $model = null;
+
+    protected $modelClass = null;
+
+    protected $modelObjectKey = null;
+
+    protected $modelChecked = false;
+
+    protected $objectId;
 
     protected $object;
+
+    protected $_empty = '_empty_';
 
     protected function getParams($params = []): array
     {
@@ -112,11 +122,11 @@ class Repositories
             return isset($this->$param) ? $this->$param : null;
         } elseif (preg_match('#^set#', $m)) {
 
-            $extendObject = preg_match('#^(extend_)\w+(_).*#', $param)
-                ? preg_replace('#^(extend_\w+)(_.*)#', '$1', $param)
+            $extendObject = preg_match('#^(extend_)[a-zA-Z]+(_).*#', $param)
+                ? preg_replace('#^(extend_[a-zA-Z]+)(_.*)#', '$1', $param)
                 : false;
-            $extendObjectParam = preg_match('#^(extend_)\w+(_).*#', $param)
-                ? preg_replace('#^(extend_\w+)(_.*)#', '$2', $param)
+            $extendObjectParam = preg_match('#^(extend_)[a-zA-Z]+(_).*#', $param)
+                ? preg_replace('#^(extend_[a-zA-Z]+)(_)(.*)#', '$3', $param)
                 : false;
 
             if (!in_array($param, $this->allowedParameters) && !isset($this->extendObjects[$extendObject])) {
@@ -140,11 +150,13 @@ class Repositories
     /**
      * @param $user
      * @param $emptyModel
-     * @return bool|StripeCustomerModel
+     * @return null|StripeCustomerModel
      */
     protected function getCustomerModel($user, $emptyModel = false)
     {
-        if (!$item = StripeCustomerModel::where('user_id', $user->{$user->getKeyName()})->first() && $emptyModel) {
+        $item = StripeCustomerModel::where('user_id', $user->{$user->getKeyName()})->first();
+
+        if (!$item && $emptyModel) {
             $item = new StripeCustomerModel();
             $item->user_id = $user->{$user->getKeyName()};
             $item->save();
@@ -161,20 +173,36 @@ class Repositories
     {
         if (is_a($user, get_class(new (config('stripe.model'))))) {
             if ($userForStripe = $this->getCustomerModel($user)) {
-                $user = $userForStripe->customer_id;
+                $user = $userForStripe->stripe_customer_id;
             } else {
-                $user = '_empty_';
+                $user = $this->_empty;
             }
         }
+
     }
 
-    public function getModel()
+    public function setObjectId($id)
     {
+        $this->objectId = $id;
+
+        return $this;
+    }
+
+    public function getModel($force = false)
+    {
+        if (!$this->model && (!$this->modelChecked || $force) && $this->objectId && $this->modelClass) {
+            $this->model = $this->modelClass::where($this->modelObjectKey, $this->objectId)->first();
+        }
+
         return $this->model;
     }
 
     public function getStripeObject()
     {
+        if (!$this->object && method_exists($this, 'retrieve') && $this->objectId) {
+            $this->retrieve($this->objectId);
+        }
+
         return $this->object;
     }
 }

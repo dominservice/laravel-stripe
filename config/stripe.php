@@ -29,7 +29,6 @@ return [
     */
     'key'    => env('STRIPE_KEY'),
     'secret' => env('STRIPE_SECRET'),
-    'app_id' => env('STRIPE_APP_ID'),
 
     /*
     |--------------------------------------------------------------------------

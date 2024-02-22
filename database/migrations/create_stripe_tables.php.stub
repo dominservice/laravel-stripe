@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('stripe_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('stripe_account_id');
+            $table->string('stripe_account_id')->nullable();
 
             $this->setUserRelation($table);
 
@@ -33,7 +33,7 @@ return new class extends Migration
 
         Schema::create('stripe_customers', function (Blueprint $table) {
             $table->id();
-            $table->string('stripe_customer_id');
+            $table->string('stripe_customer_id')->nullable();
 
             $this->setUserRelation($table);
 
@@ -45,42 +45,39 @@ return new class extends Migration
 
         Schema::create('stripe_products', function (Blueprint $table) {
             $table->id();
-            $table->string('stripe_product_id')->unique();
+            $table->string('stripe_product_id')->nullable()->unique();
             $table->nullableMorphs('parent');
             $table->nullableUlidMorphs('ulid_parent');
             $table->nullableUuidMorphs('uuid_parent');
-            $table->string('name');
-            $table->boolean('status');
-            $table->decimal('price', 16, 4);
+            $table->string('name')->nullable();
+            $table->boolean('status')->default(1);
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('stripe_prices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')
+            $table->foreignId('product_id')->nullable()
                 ->references('id')
                 ->on('stripe_products')
                 ->onDelete('cascade');
             $table->string('stripe_price_id')->unique();
-
-            $this->setUserRelation($table);
-
-            $table->boolean('status');
-            $table->decimal('price', 16, 4);
-            $table->string('currency');
-            $table->boolean('is_default');
+            $table->boolean('status')->default(1);
+            $table->decimal('price', 16, 4)->nullable();
+            $table->string('currency')->nullable();
+            $table->boolean('is_default')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
 
         Schema::create('stripe_subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')
+            $table->foreignId('customer_id')->nullable()
                 ->references('id')
                 ->on('stripe_customers')
                 ->onDelete('cascade');
-            $table->string('stripe_subscription_id')->unique();
+            $table->string('stripe_subscription_id')->nullable()->unique();
+            $table->string('stripe_checkout_session_id')->nullable()->index();
             $table->string('description')->nullable();
             $table->boolean('cancel_at_period_end')->default(0);
             $table->timestamps();

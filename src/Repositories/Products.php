@@ -5,6 +5,7 @@ namespace Dominservice\LaraStripe\Repositories;
 use Dominservice\LaraStripe\Exception\ParameterBadValueException;
 use Dominservice\LaraStripe\Helpers\ValidateHelper;
 use Dominservice\LaraStripe\Models\StripeProduct as StripeProductModel;
+use Illuminate\Support\Str;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Service\PriceService;
 use Stripe\Service\ProductService;
@@ -12,7 +13,8 @@ use Stripe\Service\ProductService;
 class Products extends Repositories
 {
     private \Stripe\Product $product;
-    private Prices $pricesRepository;
+
+    private null|Prices $pricesRepository = null;
 
     protected array $allowedParameters = [
         'name',
@@ -30,6 +32,10 @@ class Products extends Repositories
         'unit_label',
         'url',
     ];
+
+    protected $modelClass = StripeProductModel::class;
+
+    protected $modelObjectKey = 'stripe_product_id';
 
     protected array $extendObjects = [
         'extend_prices' => [
@@ -53,7 +59,7 @@ class Products extends Repositories
             'unit_amount_decimal',
         ],
     ];
-    private \Stripe\Price $priceDefault;
+    private null|\Stripe\Price $priceDefault = null;
 
     public function __construct(
         protected null|ProductService  $products,
@@ -82,80 +88,91 @@ class Products extends Repositories
      */
     public function search($params = []): \Stripe\SearchResult
     {
-        $data = $this->products->search($this->getParams($params), $this->getOpts());
+        $this->object = $this->products->search($this->getParams($params), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
      * @param $productId
-     * @return \Stripe\Product
+     * @return \Stripe\Product|null
      * @throws ApiErrorException
      */
-    public function retrieve($productId): \Stripe\Product
+    public function retrieve($productId): \Stripe\Product|null
     {
         $this->getProductIdByParent($productId);
-        $this->product = $this->products->retrieve($productId, $this->getParams(), $this->getOpts());
+
+        if ($productId !== $this->_empty) {
+            $this->object = $this->products->retrieve($productId, $this->getParams(), $this->getOpts());
+        }
+
         $this->clearObjectParams();
 
-        return $this->product;
+        return $this->object;
     }
 
     /**
      * @param $parent
-     * @return \Stripe\Product
+     * @return \Stripe\Product|null
      * @throws ApiErrorException
      * @throws ParameterBadValueException
      * @throws \Dominservice\LaraStripe\Exception\NoParametersException
      */
-    public function create($parent): \Stripe\Product
+    public function create($parent): \Stripe\Product|null
     {
         if (empty($this->params['name'])) {
             throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'name' parameter is required, you must provide this parameter to properly create the product.");
         }
 
-        $this->product = $this->products->create($this->getParams(), $this->getOpts());
-        $this->createProductModel($parent, $this->product);
+        $this->object = $this->products->create($this->getParams(), $this->getOpts());
+        $this->createProductModel($parent, $this->object);
 
         if (!empty($this->extendObjectsParam['extend_prices'])) {
-            $prices = $this->prices($this->product, true);
+            $prices = $this->prices($this->object, true);
             $prices->setParam($this->extendObjectsParam['extend_prices']);
-            $this->priceDefault = $prices->create($this->product, $this->model, true);
+            $this->priceDefault = $prices->create($this->object, $this->model, true);
+            $this->clearObjectParams();
+            $this->expandDefaultPrice();
+            $this->object = $this->products->update(
+                $this->object->id,
+                $this->getParams(['default_price' => $this->priceDefault->id]),
+                $this->getOpts()
+            );
         }
 
         $this->clearObjectParams();
 
-        return $this->product;
+        return $this->object;
     }
 
     /**
      * @param $productId
-     * @return \Stripe\Product
+     * @return \Stripe\Product|null
      * @throws ApiErrorException
      */
-    public function update($productId): \Stripe\Product
+    public function update($productId): \Stripe\Product|null
     {
         $this->getProductIdByParent($productId);
 
-        $data = $this->products->update($productId, $this->getParams(), $this->getOpts());
+        $this->object = $this->products->update($productId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
      * @param $productId
-     * @return \Stripe\Product
+     * @return \Stripe\Product|null
      * @throws ApiErrorException
      */
-    public function delete($productId): \Stripe\Product
+    public function delete($productId): \Stripe\Product|null
     {
         $this->getProductIdByParent($productId);
-        $data = $this->products->delete($productId, $this->getParams(), $this->getOpts());
+        $this->object = $this->products->delete($productId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
@@ -172,12 +189,21 @@ class Products extends Repositories
         return $this->pricesRepository;
     }
 
+    public function getStripeProductDefaultPrice()
+    {
+        if (!$this->priceDefault && $productObject = $this->getStripeObject()) {
+//            $this->priceDefault = '';
+        }
+
+        return $this->priceDefault;
+    }
+
     /**
      * @return $this
      */
     public function expandDefaultPrice()
     {
-        $this->setExpand('data.default_price');
+        $this->setExpand('default_price');
 
         return $this;
     }
@@ -187,7 +213,7 @@ class Products extends Repositories
      */
     public function expandAllPrices()
     {
-        $this->setExpand('data.prices');
+        $this->setExpand('prices');
 
         return $this;
     }
@@ -197,17 +223,7 @@ class Products extends Repositories
      */
     public function expandTaxCode()
     {
-        $this->setExpand('data.tax_code');
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    public function setName($name)
-    {
-        $this->setParam('name', $name);
+        $this->setExpand('tax_code');
 
         return $this;
     }
@@ -275,10 +291,22 @@ class Products extends Repositories
     protected function getProductModel($parent, $emptyModel = false)
     {
         $parentKey = 'parent_' . $parent->getKeyName();
+        $this->model = StripeProductModel::where($parentKey, $parent->{$parent->getKeyName()})->first();
 
-        if (!$this->model = StripeProductModel::where($parentKey, $parent->{$parent->getKeyName()})->first() && $emptyModel) {
+        if (!$this->model && $emptyModel) {
             $this->model = new StripeProductModel();
-            $this->model->$parentKey = $parent->{$parent->getKeyName()};
+            $relationType = $parent->getMorphClass();
+            $relationId = $parent->{$parent->getKeyName()};
+
+            if (Str::isUlid($relationId)) {
+                $this->model->ulid_parent_type = $relationType;
+            } elseif(Str::isUuid($relationId)) {
+                $this->model->uuid_parent_type = $relationType;
+            } else {
+                $this->model->parent_type = $relationType;
+            }
+
+            $this->model->$parentKey = $relationId;
             $this->model->save();
         }
 
@@ -290,12 +318,14 @@ class Products extends Repositories
      * @param \Stripe\Product $product
      * @return StripeProductModel|bool
      */
-    protected function createProductModel($parent, \Stripe\Product $product): StripeProductModel|bool
+    protected function createProductModel($parent, \Stripe\Product $product): StripeProductModel|null
     {
         $this->getProductModel($parent, true);
 
         if (!$this->model->stripe_product_id) {
             $this->model->stripe_product_id = $product->id;
+            $this->model->name = $product->name;
+            $this->model->status = (int)$product->active;
             $this->model->save();
         }
 
@@ -311,7 +341,7 @@ class Products extends Repositories
         if ($productStripe = $this->getProductModel($parent)) {
             $parent = $productStripe->stripe_product_id;
         } else {
-            $parent = '_empty_';
+            $parent = $this->_empty;
         }
     }
 }

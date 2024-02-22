@@ -56,6 +56,12 @@ class StripeProduct extends Model
         return $this->morphTo('parent_uuid');
     }
 
+    public function defaultPrice()
+    {
+        return $this->hasOne(StripePrice::class, 'product_id', 'id')
+            ->where('is_default', 1);
+    }
+
     public function prices()
     {
         return $this->hasMany(StripePrice::class, 'product_id', 'id');

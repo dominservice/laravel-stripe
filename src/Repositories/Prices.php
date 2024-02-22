@@ -33,6 +33,10 @@ class Prices extends Repositories
         'unit_amount_decimal',
     ];
 
+    protected $modelClass = StripePriceModel::class;
+
+    protected $modelObjectKey = 'stripe_price_id';
+
     private \Stripe\Price $price;
 
     public function __construct(
@@ -75,10 +79,10 @@ class Prices extends Repositories
      */
     public function retrieve($priceId): \Stripe\Price
     {
-        $this->price = $this->prices->retrieve($priceId, $this->getParams(), $this->getOpts());
+        $this->object = $this->prices->retrieve($priceId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
 
-        return $this->price;
+        return $this->object;
     }
 
     /**
@@ -127,11 +131,11 @@ class Prices extends Repositories
         }
 
         $this->setParam('product', is_string($product) ? $product : $product->id);
-        $object = $this->prices->create($this->getParams(), $this->getOpts());
-        $this->createPriceModel($productModel, $object, $isDefault);
+        $this->object = $this->prices->create($this->getParams(), $this->getOpts());
+        $this->createPriceModel($productModel, $this->object, $isDefault);
         $this->clearObjectParams();
 
-        return $object;
+        return $this->object;
     }
 
     /**
@@ -142,10 +146,10 @@ class Prices extends Repositories
      */
     public function update($priceId, $params): \Stripe\Price
     {
-        $data = $this->prices->update($priceId, $this->getParams($params), $this->getOpts());
+        $this->object = $this->prices->update($priceId, $this->getParams($params), $this->getOpts());
         $this->clearObjectParams();
 
-        return $data;
+        return $this->object;
     }
 
     /**
@@ -194,13 +198,15 @@ class Prices extends Repositories
      * @param bool $emptyModel
      * @return StripePriceModel|bool
      */
-    protected function getPriceModel($priceId, bool $emptyModel = false): StripePriceModel|bool
+    protected function getPriceModel($priceId, bool $emptyModel = false): StripePriceModel|null
     {
-        if (is_a($priceId, 'Price')) {
+        if (!is_string($priceId)) {
             $priceId = $priceId->id;
         }
 
-        if (!$this->model = StripePriceModel::where('stripe_price_id', $priceId)->first() && $emptyModel) {
+        $this->model = StripePriceModel::where('stripe_price_id', $priceId)->first();
+
+        if (!$this->model && $emptyModel) {
             $this->model = new StripePriceModel();
             $this->model->stripe_price_id = $priceId;
             $this->model->save();
@@ -217,10 +223,12 @@ class Prices extends Repositories
      */
     private function createPriceModel(StripeProductModel $productModel, \Stripe\Price $object, bool $isDefault = false): void
     {
-        $this->getPriceModel($object);
+        $this->getPriceModel($object, true);
 
         if ($this->model && !$this->model->product_id) {
             $this->model->product_id = $productModel->id;
+            $this->model->status = (int)$object->active;
+            $this->model->price = (float)$object->unit_amount;
             $this->model->is_default = $isDefault;
             $this->model->save();
         }

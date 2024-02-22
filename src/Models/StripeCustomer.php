@@ -30,8 +30,8 @@ class StripeCustomer extends Model
 
     public function user()
     {
-        $userModel = config('stripe.model', \App\Models\User::class);
-
+        $userModel = new (config('stripe.model', \App\Models\User::class));
+        
         return $this->hasOne($userModel, $userModel->getKeyName(), 'user_id');
     }
 }

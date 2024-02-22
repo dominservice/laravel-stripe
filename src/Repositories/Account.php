@@ -29,6 +29,11 @@ class Account extends Repositories
         'external_account',
         'settings',
     ];
+    
+    protected $modelClass = StripeAccountModel::class;
+    
+    protected $modelObjectKey = 'stripe_account_id';
+    
     public function __construct(
         protected null|AccountService $accounts,
         protected readonly null|string $stripeAccount = null
@@ -153,11 +158,13 @@ class Account extends Repositories
     /**
      * @param $user
      * @param $emptyModel
-     * @return bool|StripeAccountModel
+     * @return null|StripeAccountModel
      */
     protected function getAccountModel($user, $emptyModel = false)
     {
-        if (!$stripeAccount = StripeAccountModel::where('user_id', $user->{$user->getKeyName()})->first() && $emptyModel) {
+        $stripeAccount = StripeAccountModel::where('user_id', $user->{$user->getKeyName()})->first();
+        
+        if (!$stripeAccount && $emptyModel) {
             $stripeAccount = new StripeAccountModel();
             $stripeAccount->user_id = $user->{$user->getKeyName()};
             $stripeAccount->save();

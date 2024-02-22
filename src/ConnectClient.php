@@ -3,6 +3,8 @@
 namespace Dominservice\LaraStripe;
 
 use Dominservice\LaraStripe\Repositories\Account;
+use Dominservice\LaraStripe\Repositories\BillingPortalSession;
+use Dominservice\LaraStripe\Repositories\CheckoutSession;
 use Dominservice\LaraStripe\Repositories\Customers;
 use Dominservice\LaraStripe\Repositories\Prices;
 use Dominservice\LaraStripe\Repositories\Products;
@@ -61,6 +63,22 @@ class ConnectClient
      */
     public function subscription(): Subscriptions
     {
-        return new Subscriptions($this->client->subscriptions, $this->stipeAccount);
+        return new Subscriptions($this->client->subscriptions);
+    }
+
+    /**
+     * @return CheckoutSession
+     */
+    public function checkoutSessions(): CheckoutSession
+    {
+        return new CheckoutSession($this->client->checkout->sessions);
+    }
+
+    /**
+     * @return BillingPortalSession
+     */
+    public function billingPortalSession(): BillingPortalSession
+    {
+        return new BillingPortalSession($this->client->billingPortal->sessions);
     }
 }

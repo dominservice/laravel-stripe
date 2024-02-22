@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $id
  * @property string $customer_id
  * @property string $stripe_subscription_id
+ * @property string $stripe_checkout_session_id
  * @property string $price_id
  * @property string $product_id
  * @property bool|int $cancel_at_period_end
@@ -29,6 +30,7 @@ class StripeSubscription extends Model
     protected $fillable = [
         'customer_id',
         'stripe_subscription_id',
+        'stripe_checkout_session_id',
         'description',
         'cancel_at_period_end',
     ];
