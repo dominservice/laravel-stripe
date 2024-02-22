@@ -104,6 +104,11 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('stripe_subscription_prices');
+        Schema::dropIfExists('stripe_subscriptions');
+        Schema::dropIfExists('stripe_prices');
+        Schema::dropIfExists('stripe_products');
+        Schema::dropIfExists('stripe_customers');
         Schema::dropIfExists('stripe_accounts');
     }
 

@@ -12,16 +12,16 @@ class PaymentHelper
      * @return float|int|mixed
      * @throws ParameterBadValueException
      */
-    public static function getValidAmount($currency, $amount): mixed
+    public static function getValidAmount($currency, $amount, $reverse = false): mixed
     {
         if (in_array($currency, config('stripe.currencies'))) {
             throw new ParameterBadValueException("The currency must be declared in the package configuration.");
         }
 
         if (in_array($currency, config('stripe.three_decimal_currencies'))) {
-            $amount = round(($amount * 1000), -1);
+            $amount = $reverse ? $amount / 1000 : round(($amount * 1000), -1);
         } elseif (!in_array($currency, config('stripe.zero_decimal_currencies'))) {
-            $amount = $amount * 100;
+            $amount = $reverse ? $amount / 100 : $amount * 100;
         }
 
         if (in_array($currency, config('stripe.minimum_charge_amounts'))

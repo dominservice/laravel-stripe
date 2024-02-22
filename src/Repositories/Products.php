@@ -288,7 +288,7 @@ class Products extends Repositories
         }
     }
 
-    protected function getProductModel($parent, $emptyModel = false)
+    public function getProductModel($parent, $emptyModel = false)
     {
         $parentKey = 'parent_' . $parent->getKeyName();
         $this->model = StripeProductModel::where($parentKey, $parent->{$parent->getKeyName()})->first();
