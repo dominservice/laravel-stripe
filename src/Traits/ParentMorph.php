@@ -6,17 +6,17 @@ trait ParentMorph
 {
     public function scopeWhereParent($query, $parent)
     {
-        return $query->whereParentType($parent->getMorphClass())
-            ->whereParentId($parent->{$parent->getKeyName()});
+        return $query->where(\DB::getTablePrefix() . $this->getTable() . '.parent_type', $parent->getMorphClass())
+            ->where(\DB::getTablePrefix() . $this->getTable() . '.parent_id', $parent->{$parent->getKeyName()});
     }
     public function scopeWhereUlidParent($query, $parent)
     {
-        return $query->whereUlidParentType($parent->getMorphClass())
-            ->whereUlidParentId($parent->{$parent->getKeyName()});
+        return $query->where(\DB::getTablePrefix() . $this->getTable() . '.ulid_parent_type', $parent->getMorphClass())
+            ->where(\DB::getTablePrefix() . $this->getTable() . '.ulid_parent_id', $parent->{$parent->getKeyName()});
     }
     public function scopeWhereUuidParent($query, $parent)
     {
-        return $query->whereUuidParentType($parent->getMorphClass())
-            ->whereUuidParentId($parent->{$parent->getKeyName()});
+        return $query->where(\DB::getTablePrefix() . $this->getTable() . '.uuid_parent_type', $parent->getMorphClass())
+            ->where(\DB::getTablePrefix() . $this->getTable() . '.uuid_parent_id', $parent->{$parent->getKeyName()});
     }
 }

@@ -193,7 +193,7 @@ class Repositories
         if (!$this->model && (!$this->modelChecked || $force) && $this->objectId && $this->modelClass) {
             $this->model = $this->modelClass::where($this->modelObjectKey, $this->objectId)->first();
         }
-
+        
         return $this->model;
     }
 

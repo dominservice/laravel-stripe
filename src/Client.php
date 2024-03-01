@@ -5,6 +5,7 @@ namespace Dominservice\LaraStripe;
 use Dominservice\LaraStripe\Repositories\BillingPortalSession;
 use Dominservice\LaraStripe\Repositories\CheckoutSession;
 use Dominservice\LaraStripe\Repositories\Customers;
+use Dominservice\LaraStripe\Repositories\Invoices;
 use Dominservice\LaraStripe\Repositories\Prices;
 use Dominservice\LaraStripe\Repositories\Products;
 use Dominservice\LaraStripe\Repositories\Subscriptions;
@@ -52,6 +53,14 @@ class Client
     public function subscription(): Subscriptions
     {
         return new Subscriptions($this->client->subscriptions);
+    }
+
+    /**
+     * @return Invoices
+     */
+    public function invoices(): Invoices
+    {
+        return new Invoices($this->client->invoices);
     }
 
     /**

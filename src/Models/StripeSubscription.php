@@ -11,9 +11,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string $customer_id
  * @property string $stripe_subscription_id
  * @property string $stripe_checkout_session_id
- * @property string $price_id
- * @property string $product_id
+ * @property string $description
  * @property bool|int $cancel_at_period_end
+ * @property bool|int $is_canceled
  *
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
@@ -33,6 +33,7 @@ class StripeSubscription extends Model
         'stripe_checkout_session_id',
         'description',
         'cancel_at_period_end',
+        'is_canceled',
     ];
 
     /**
@@ -41,30 +42,6 @@ class StripeSubscription extends Model
     public function getMorphClass(): string
     {
         return 'stripe_product';
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
-     */
-    public function parent(): \Illuminate\Database\Eloquent\Relations\MorphTo
-    {
-        return $this->morphTo();
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
-     */
-    public function parentUlid(): \Illuminate\Database\Eloquent\Relations\MorphTo
-    {
-        return $this->morphTo('parent_ulid');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\MorphTo
-     */
-    public function parentUuid(): \Illuminate\Database\Eloquent\Relations\MorphTo
-    {
-        return $this->morphTo('parent_uuid');
     }
 
     /**
@@ -87,7 +64,7 @@ class StripeSubscription extends Model
      */
     public function customer(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(StripeCustomer::class, 'id', ' customer_id');
+        return $this->hasOne(StripeCustomer::class, 'id', 'customer_id');
     }
 
     /**

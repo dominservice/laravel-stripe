@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class StripePrice extends Model
 {
     use SoftDeletes, ParentMorph;
+
     protected $fillable = [
         'product_id',
         'stripe_price_id',
@@ -31,4 +32,9 @@ class StripePrice extends Model
         'currency',
         'is_default',
     ];
+
+    public function product()
+    {
+        return $this->hasOne(StripeProduct::class, 'id', 'product_id');
+    }
 }

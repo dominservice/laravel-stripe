@@ -32,6 +32,8 @@ class PaymentHelper
 
         return $amount;
     }
+    
+    
 
     public static function getPaymentMethodsByCountry($country)
     {

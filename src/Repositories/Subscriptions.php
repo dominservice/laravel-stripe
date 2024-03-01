@@ -48,8 +48,12 @@ class Subscriptions extends Repositories
         'trial_period_days',
         'trial_settings',
     ];
-    
+
     protected $checkoutSessionId;
+
+    protected $modelClass = StripeSubscriptionModel::class;
+
+    protected $modelObjectKey = 'stripe_subscription_id';
 
     public function __construct(
         protected null|SubscriptionService $subscriptions,
@@ -143,9 +147,9 @@ class Subscriptions extends Repositories
      * @return \Stripe\Subscription
      * @throws ApiErrorException
      */
-    public function update($subscriptionId, $params): \Stripe\Subscription
+    public function update($subscriptionId): \Stripe\Subscription
     {
-        $this->object = $this->subscriptions->update($subscriptionId, $this->getParams($params), $this->getOpts());
+        $this->object = $this->subscriptions->update($subscriptionId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
 
         return $this->object;
@@ -246,15 +250,15 @@ class Subscriptions extends Repositories
         }
 
         $this->model = StripeSubscriptionModel::where('stripe_subscription_id', $subscriptionId)->first();
-        
+
         if (!$this->model && $emptyModel) {
             $this->model = new StripeSubscriptionModel();
             $this->model->stripe_subscription_id = $subscriptionId;
-            
+
             if (!empty($this->checkoutSessionId)) {
                 $this->model->stripe_checkout_session_id = $this->checkoutSessionId;
             }
-            
+
             $this->model->save();
         }
 
@@ -280,12 +284,12 @@ class Subscriptions extends Repositories
 
         return $this->model;
     }
-    
+
     public function setCheckoutSessionId($id)
     {
         $this->checkoutSessionId = $id;
-        
+
         return $this;
-    } 
-    
+    }
+
 }

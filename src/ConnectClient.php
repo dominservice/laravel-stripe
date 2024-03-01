@@ -6,6 +6,7 @@ use Dominservice\LaraStripe\Repositories\Account;
 use Dominservice\LaraStripe\Repositories\BillingPortalSession;
 use Dominservice\LaraStripe\Repositories\CheckoutSession;
 use Dominservice\LaraStripe\Repositories\Customers;
+use Dominservice\LaraStripe\Repositories\Invoices;
 use Dominservice\LaraStripe\Repositories\Prices;
 use Dominservice\LaraStripe\Repositories\Products;
 use Dominservice\LaraStripe\Repositories\Subscriptions;
@@ -63,7 +64,15 @@ class ConnectClient
      */
     public function subscription(): Subscriptions
     {
-        return new Subscriptions($this->client->subscriptions);
+        return new Subscriptions($this->client->subscriptions, $this->stipeAccount);
+    }
+
+    /**
+     * @return Invoices
+     */
+    public function invoices(): Invoices
+    {
+        return new Invoices($this->client->invoices, $this->stipeAccount);
     }
 
     /**
@@ -71,7 +80,7 @@ class ConnectClient
      */
     public function checkoutSessions(): CheckoutSession
     {
-        return new CheckoutSession($this->client->checkout->sessions);
+        return new CheckoutSession($this->client->checkout->sessions, $this->stipeAccount);
     }
 
     /**
@@ -79,6 +88,6 @@ class ConnectClient
      */
     public function billingPortalSession(): BillingPortalSession
     {
-        return new BillingPortalSession($this->client->billingPortal->sessions);
+        return new BillingPortalSession($this->client->billingPortal->sessions, $this->stipeAccount);
     }
 }

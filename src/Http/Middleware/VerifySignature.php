@@ -50,22 +50,19 @@ class VerifySignature
      */
     public function handle($request, \Closure $next, $signingSecret = 'checkout')
     {
-        $this->log->log("Verifying Stripe webhook using signing secret: {$signingSecret}");
-        Log::info("Verifying Stripe webhook using signing secret: {$signingSecret}");
+//        $this->log->log("Verifying Stripe webhook using signing secret: {$signingSecret}");
 
         try {
             $this->verifier->verify($request, $signingSecret);
         } catch (SignatureVerificationException $ex) {
-            Log::error('stripe_webhook_verification_error: ' . $ex->getMessage());
             $event = new SignatureVerificationFailed($ex->getMessage(), $ex->getSigHeader(), $signingSecret);
-
             $this->log->log("Stripe webhook signature verification failed.", $event->toArray());
             $this->events->dispatch($event);
 
             return response()->json(['error' => 'Invalid signature.'], Response::HTTP_BAD_REQUEST);
         }
 
-        $this->log->log("Verified Stripe webhook with signing secret: {$signingSecret}");
+//        $this->log->log("Verified Stripe webhook with signing secret: {$signingSecret}");
 
         return $next($request);
     }
