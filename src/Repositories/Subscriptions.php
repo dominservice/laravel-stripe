@@ -94,10 +94,11 @@ class Subscriptions extends Repositories
      */
     public function retrieve($subscriptionId): \Stripe\Subscription
     {
-        $data = $this->subscriptions->retrieve($subscriptionId, $this->getParams(), $this->getOpts());
+        $this->object = $this->subscriptions->retrieve($subscriptionId, $this->getParams(), $this->getOpts());
         $this->clearObjectParams();
+        $this->objectId = $this->object->id ?? null;
 
-        return $data;
+        return $this->object;
     }
 
     /**

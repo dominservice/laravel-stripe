@@ -87,37 +87,37 @@ class Invoices extends Repositories
      */
     public function create($customerId): \Stripe\Invoice
     {
-        $prices = [];
-
-        if (empty($this->params['customer'])) {
-            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'customer' parameter is required, you must provide this parameter to properly create the subscription.");
-        }
-
-        if (empty($this->params['items'])) {
-            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'items' parameter is required, you must provide this parameter to properly create the subscription.");
-        } else {
-            foreach ($this->params['items'] as $item) {
-                if (empty($item['price'])) {
-                    throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'items.[].price' parameter is required");
-                } else {
-                    $prices[] = $item['price'];
-                }
-            }
-        }
-
-        if (isset($this->params['payment_behavior'])
-            && (!isset($this->params['collection_method'])
-                || (isset($this->params['collection_method']) && $this->params['collection_method'] !== 'charge_automatically'))
-        ) {
-            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'payment_behavior' parameter is only applies to subscriptions with collection_method=charge_automatically. Check the documentation: https://docs.stripe.com/api/subscriptions/create#create_subscription-payment_behavior");
-        }
-
-        $this->getCustomerIdByUser($customerId);
-        $this->object = $this->invoices->create($this->getParams(), $this->getOpts());
-        $this->createSubscriptionModel($customerId, $this->object, $prices);
-        $this->clearObjectParams();
-
-        return $this->object;
+//        $prices = [];
+//
+//        if (empty($this->params['customer'])) {
+//            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'customer' parameter is required, you must provide this parameter to properly create the subscription.");
+//        }
+//
+//        if (empty($this->params['items'])) {
+//            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'items' parameter is required, you must provide this parameter to properly create the subscription.");
+//        } else {
+//            foreach ($this->params['items'] as $item) {
+//                if (empty($item['price'])) {
+//                    throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'items.[].price' parameter is required");
+//                } else {
+//                    $prices[] = $item['price'];
+//                }
+//            }
+//        }
+//
+//        if (isset($this->params['payment_behavior'])
+//            && (!isset($this->params['collection_method'])
+//                || (isset($this->params['collection_method']) && $this->params['collection_method'] !== 'charge_automatically'))
+//        ) {
+//            throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'payment_behavior' parameter is only applies to subscriptions with collection_method=charge_automatically. Check the documentation: https://docs.stripe.com/api/subscriptions/create#create_subscription-payment_behavior");
+//        }
+//
+//        $this->getCustomerIdByUser($customerId);
+//        $this->object = $this->invoices->create($this->getParams(), $this->getOpts());
+//        $this->createSubscriptionModel($customerId, $this->object, $prices);
+//        $this->clearObjectParams();
+//
+//        return $this->object;
     }
 
     /**

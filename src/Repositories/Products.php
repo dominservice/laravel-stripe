@@ -12,8 +12,6 @@ use Stripe\Service\ProductService;
 
 class Products extends Repositories
 {
-    private \Stripe\Product $product;
-
     private null|Prices $pricesRepository = null;
 
     protected array $allowedParameters = [
@@ -183,7 +181,7 @@ class Products extends Repositories
     public function prices(null|\Stripe\Product $product = null, $force = false): Prices
     {
         if (!$this->pricesRepository || $force) {
-            $this->pricesRepository = new Prices($this->prices, $product ?? $this->product, $this->stripeAccount);
+            $this->pricesRepository = new Prices($this->prices, $product ?? $this->object, $this->stripeAccount);
         }
 
         return $this->pricesRepository;
@@ -290,7 +288,7 @@ class Products extends Repositories
 
     public function getProductModel($parent, $emptyModel = false)
     {
-        $parentKey = 'parent_' . $parent->getKeyName();
+        $parentKey = $parent->getKeyName() != 'id' ? $parent->getKeyName() . '_parent_id' : 'parent_id';
         $this->model = StripeProductModel::where($parentKey, $parent->{$parent->getKeyName()})->first();
 
         if (!$this->model && $emptyModel) {

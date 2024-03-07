@@ -11,6 +11,7 @@ use Stripe\Subscription;
  * @property int $id
  * @property string $subscription_id
  * @property string $stripe_invoice_id
+ * @property string $currency
  * @property float $total
  * @property null|\Carbon\Carbon $paid_at
  *

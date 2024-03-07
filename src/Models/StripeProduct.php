@@ -48,12 +48,12 @@ class StripeProduct extends Model
 
     public function parentUlid()
     {
-        return $this->morphTo('parent_ulid');
+        return $this->morphTo(__FUNCTION__, 'ulid_parent_type', 'ulid_parent_id');
     }
 
     public function parentUuid()
     {
-        return $this->morphTo('parent_uuid');
+        return $this->morphTo(__FUNCTION__, 'uuid_parent_type', 'uuid_parent_id');
     }
 
     public function defaultPrice()
