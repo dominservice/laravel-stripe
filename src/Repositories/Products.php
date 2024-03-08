@@ -21,6 +21,7 @@ class Products extends Repositories
         'id',
         'metadata',
         'default_price_data',
+        'default_price',
         'features',
         'images',
         'package_dimensions',
@@ -336,7 +337,9 @@ class Products extends Repositories
      */
     private function getProductIdByParent(&$parent): void
     {
-        if ($productStripe = $this->getProductModel($parent)) {
+        if (is_string($parent)) {
+            $parent = $parent;
+        } elseif ($productStripe = $this->getProductModel($parent)) {
             $parent = $productStripe->stripe_product_id;
         } else {
             $parent = $this->_empty;

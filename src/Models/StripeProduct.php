@@ -20,7 +20,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property null|\Carbon\Carbon $deleted_at
- *
+ * 
+ * @property null|StripePrice $defaultPrice
  */
 class StripeProduct extends Model
 {

@@ -2,6 +2,7 @@
 
 namespace Dominservice\LaraStripe\Repositories;
 
+use Dominservice\LaraStripe\Client as StripeClient;
 use Dominservice\LaraStripe\Exception\ParameterBadValueException;
 use Dominservice\LaraStripe\Helpers\PaymentHelper;
 use Dominservice\LaraStripe\Helpers\ValidateHelper;
@@ -94,7 +95,7 @@ class Prices extends Repositories
      * @throws ParameterBadValueException
      * @throws \Dominservice\LaraStripe\Exception\NoParametersException
      */
-    public function create(string|\Stripe\Product $product, StripeProductModel $productModel, bool $isDefault = false): \Stripe\Price
+    public function create(string|\Stripe\Product|null $product, StripeProductModel $productModel, bool $isDefault = false): \Stripe\Price
     {
         if (empty($this->params['currency'])) {
             throw new \Dominservice\LaraStripe\Exception\NoParametersException("The 'currency' parameter is required, you must provide this parameter to properly create the product.");
@@ -130,7 +131,12 @@ class Prices extends Repositories
             $this->params['unit_amount'] = PaymentHelper::getValidAmount($this->params['currency'], $this->params['unit_amount']);
         }
 
-        $this->setParam('product', is_string($product) ? $product : $product->id);
+        if ($product) {
+            $this->setParam('product', is_string($product) ? $product : $product->id);
+        } elseif ($tis->product) {
+            $this->setParam('product', $tis->product->id);
+        }
+
         $this->object = $this->prices->create($this->getParams(), $this->getOpts());
         $this->createPriceModel($productModel, $this->object, $isDefault);
         $this->clearObjectParams();
@@ -229,9 +235,23 @@ class Prices extends Repositories
             $this->model->product_id = $productModel->id;
             $this->model->status = (int)$object->active;
             $this->model->price = (float)$object->unit_amount;
+            $this->model->currency = $object->currency;
             $this->model->is_default = $isDefault;
             $this->model->save();
-        }
 
+            if ($isDefault) {
+                $stripe = (new StripeClient());
+                $stripeProductRepository = $stripe->products();
+                $this->product = $stripeProductRepository
+                    ->setDefaultPrice($object->id)
+                    ->update($productModel->stripe_product_id);
+                
+                StripePriceModel::where('product_id', $productModel->id)
+                    ->where('stripe_price_id', '!=', $object->id)
+                    ->update([
+                        'is_default' => 0,
+                    ]);
+            }
+        }
     }
 }
