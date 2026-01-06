@@ -16,7 +16,7 @@
   "require": {
     "php": "^8.1|^8,2|^8.3",
     "ext-json": "*",
-    "dominservice/data_locale_parser": "^1.0",
+    "dominservice/data_locale_parser": "^2.0",
     "illuminate/console": "^10.0|^11.0|^12.0",
     "illuminate/contracts": "^10.0|^11.0|^12.0",
     "illuminate/database": "^10.0|^11.0|^12.0",
