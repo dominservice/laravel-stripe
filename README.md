@@ -59,6 +59,45 @@ This means that `config("stripe.webhooks.signing_secrets.checkout")` will be use
 
 For direct Checkout Session `line_items.price_data` payloads, the package also accepts uppercase currency codes declared in `config/stripe.php` and normalizes them to Stripe's expected lowercase format before the request is sent.
 
+## Stripe Connect
+
+The package supports the base repositories required for Stripe Connect onboarding:
+- `accounts()`
+- `accountLinks()`
+- `loginLinks()`
+
+Typical platform flow:
+
+```php
+use Dominservice\LaraStripe\Client as StripeClient;
+
+$stripe = new StripeClient();
+
+$account = $stripe->accounts()
+    ->setType('express')
+    ->setCountry('PL')
+    ->setEmail($expert->email)
+    ->setCapabilities([
+        'transfers' => ['requested' => true],
+    ])
+    ->create($expert);
+
+$onboarding = $stripe->accountLinks()
+    ->setAccount($account->id)
+    ->setRefreshUrl(route('expert.billing.refresh'))
+    ->setReturnUrl(route('expert.billing.return'))
+    ->setType('account_onboarding')
+    ->create();
+
+$loginLink = $stripe->loginLinks()->create($account->id);
+```
+
+For marketplace split payments handled on the platform account, create Checkout Sessions with:
+- `payment_intent_data.application_fee_amount`
+- `payment_intent_data.transfer_data.destination`
+
+This allows the platform to collect its fee and transfer the remaining amount to the connected expert account.
+
 ## Code
 
 ```php

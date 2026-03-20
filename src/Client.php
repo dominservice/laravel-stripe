@@ -2,10 +2,13 @@
 
 namespace Dominservice\LaraStripe;
 
+use Dominservice\LaraStripe\Repositories\Account;
+use Dominservice\LaraStripe\Repositories\AccountLink;
 use Dominservice\LaraStripe\Repositories\BillingPortalSession;
 use Dominservice\LaraStripe\Repositories\CheckoutSession;
 use Dominservice\LaraStripe\Repositories\Customers;
 use Dominservice\LaraStripe\Repositories\Invoices;
+use Dominservice\LaraStripe\Repositories\LoginLink;
 use Dominservice\LaraStripe\Repositories\Prices;
 use Dominservice\LaraStripe\Repositories\Products;
 use Dominservice\LaraStripe\Repositories\Subscriptions;
@@ -29,6 +32,30 @@ class Client
     public function customers(): Customers
     {
         return new Customers($this->client->customers);
+    }
+
+    /**
+     * @return Account
+     */
+    public function accounts(): Account
+    {
+        return new Account($this->client->accounts);
+    }
+
+    /**
+     * @return AccountLink
+     */
+    public function accountLinks(): AccountLink
+    {
+        return new AccountLink($this->client->accountLinks);
+    }
+
+    /**
+     * @return LoginLink
+     */
+    public function loginLinks(): LoginLink
+    {
+        return new LoginLink($this->client->accounts);
     }
 
     /**
