@@ -57,6 +57,8 @@ Route::group(['middleware' => ['stripe.verify:checkout'], 'namespace' => '\App\H
 
 This means that `config("stripe.webhooks.signing_secrets.checkout")` will be used to verify webhook.
 
+For direct Checkout Session `line_items.price_data` payloads, the package also accepts uppercase currency codes declared in `config/stripe.php` and normalizes them to Stripe's expected lowercase format before the request is sent.
+
 ## Code
 
 ```php

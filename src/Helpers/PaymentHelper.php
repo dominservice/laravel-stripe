@@ -14,23 +14,38 @@ class PaymentHelper
      */
     public static function getValidAmount($currency, $amount, $reverse = false): mixed
     {
-        if (in_array($currency, config('stripe.currencies'))) {
+        $currency = strtoupper(trim((string) $currency));
+        $supportedCurrencies = (array) config('stripe.currencies', []);
+
+        if (!in_array($currency, $supportedCurrencies, true)) {
             throw new ParameterBadValueException("The currency must be declared in the package configuration.");
         }
 
-        if (in_array($currency, config('stripe.three_decimal_currencies'))) {
+        if (in_array($currency, (array) config('stripe.three_decimal_currencies', []), true)) {
             $amount = $reverse ? $amount / 1000 : round(($amount * 1000), -1);
-        } elseif (!in_array($currency, config('stripe.zero_decimal_currencies'))) {
+        } elseif (!in_array($currency, (array) config('stripe.zero_decimal_currencies', []), true)) {
             $amount = $reverse ? $amount / 100 : $amount * 100;
         }
 
-        if (in_array($currency, config('stripe.minimum_charge_amounts'))
-            && config('stripe.minimum_charge_amounts')[$currency] <= $amount
+        $minimumChargeAmounts = (array) config('stripe.minimum_charge_amounts', []);
+        if (array_key_exists($currency, $minimumChargeAmounts)
+            && (float) $amount < (float) $minimumChargeAmounts[$currency]
         ) {
             throw new ParameterBadValueException("The indicated amount is too low for this currency. Check the documentation: https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts");
         }
 
         return $amount;
+    }
+
+    public static function normalizeCurrencyCode($currency, bool $lowercase = false): string
+    {
+        $normalized = strtoupper(trim((string) $currency));
+
+        if (!in_array($normalized, (array) config('stripe.currencies', []), true)) {
+            throw new ParameterBadValueException("The currency must be declared in the package configuration.");
+        }
+
+        return $lowercase ? strtolower($normalized) : $normalized;
     }
     
     

@@ -138,11 +138,19 @@ class CheckoutSession extends Repositories
             $val = $key;
 
             if ($param === 'line_items') {
-                foreach ($val as $item) {
+                foreach ($val as $index => &$item) {
                     if (empty($item['price']) && empty($item['price_data'])) {
                         throw new ParameterBadValueException("The 'line_items' parameter has an invalid value. Check the documentation: https://docs.stripe.com/api/checkout/sessions/create#create_checkout_session-line_items");
                     }
+
+                    if (!empty($item['price_data']['currency'])) {
+                        $item['price_data']['currency'] = \Dominservice\LaraStripe\Helpers\PaymentHelper::normalizeCurrencyCode(
+                            $item['price_data']['currency'],
+                            true
+                        );
+                    }
                 }
+                unset($item);
             } elseif ($param === 'metadata') {
                 ValidateHelper::metadata($val);
             } elseif ($param === 'mode' && !in_array($val, ['payment', 'setup', 'subscription'])) {
